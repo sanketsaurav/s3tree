@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
+import os
 from boto3 import Session
 from botocore.exceptions import ClientError
 
-from .exceptions import BucketAccessDenied, BucketNotFound
-from .models import Directory, File
+from .exceptions import BucketAccessDenied, BucketNotFound, DirectoryNotFound
+from .utils import normalize_path
 
 
 class S3Tree(object):
@@ -38,6 +39,7 @@ class S3Tree(object):
 
         # create an S3 resource
         self.s3 = session.resource(self.BOTO3_S3_RESOURCE_ID)
+        self.client = self.s3.meta.client
 
         # ensure that the bucket exists, and then set the bucket name
         self.__ensure_bucket_exists()
@@ -46,7 +48,7 @@ class S3Tree(object):
         # set the base path
         self.base_path = base_path
 
-    def listdir(self, path=None):
+    def listdir(self, path='/'):
         """
         Returns a list of files and directories present under the given path.
 
@@ -63,9 +65,23 @@ class S3Tree(object):
 
         Args:
             path (string): The path to list the files and directories of.
-                Defaults to None.
+                Defaults to '/'.
         """
-        pass
+
+        full_path = normalize_path(os.path.join(self.base_path, path))
+
+        # get tree
+        tree_data = self.client.list_objects_v2(
+            Bucket=self.bucket_name, Delimiter=self.KEY_DELIMITER,
+            Prefix=full_path)
+
+        # if this directory is empty, raise an error
+        if not tree_data.get('KeyCount'):
+            raise DirectoryNotFound(full_path)
+
+        # otherwise, return the tree
+        else:
+            pass
 
     def getfile(self, path):
         """Returns the file at the given path.
@@ -85,7 +101,7 @@ class S3Tree(object):
         """
 
         try:
-            self.s3.meta.client.head_bucket(Bucket=bucket_name)
+            self.client.head_bucket(Bucket=bucket_name)
         except ClientError as exc:
             # check the error code in the exception and raise a proper
             # exception

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Utility functions for S3Tree."""
-
+from math import log
 from .exceptions import InvalidPathError
+
+SUFFIXES = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
 
 
 def normalize_path(path):
@@ -35,3 +37,25 @@ def normalize_path(path):
         path += '/'
 
     return path
+
+
+def humanize_file_size(size):
+    """Convert the size of a file given in bytes to a human friendly
+    display value.
+
+    >>> humanize_file_size(1700)
+    '1.66 KB'
+
+    >>> humanize_file_size(133)
+    '133 bytes'
+
+    """
+    # determine binary order in steps of size 10
+    # (coerce to int, // still returns a float)
+    order = int(log(size, 2) / 10) if size else 0
+    # format file size
+    # (.4g results in rounded numbers for exact matches and max 3 decimals,
+    # should never resort to exponent values)
+    return '{:.4g} {}'.format(
+        float(size) / (1 << (order * 10)), SUFFIXES[order]
+    )

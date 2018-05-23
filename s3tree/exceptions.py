@@ -20,3 +20,15 @@ class InvalidPathError(Exception):
     def __init__(self):
         message = "Invalid path provided. Path must be a string, or None."
         super(InvalidPathError, self).__init__(message)
+
+
+class FileNotFound(Exception):
+    def __init__(self, file_name):
+        message = "File could not be found: {}".format(file_name)
+        super(FileNotFound, self).__init__(message)
+
+
+class DirectoryNotFound(Exception):
+    def __init__(self, dir_name):
+        message = "Directory could not be found: {}".format(dir_name)
+        super(DirectoryNotFound, self).__init__(message)
