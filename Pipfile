@@ -5,9 +5,12 @@ name = "pypi"
 
 [dev-packages]
 pytest = "*"
+pytest-cov = "*"
+coveralls = "*"
 
 [packages]
 twine = "*"
+"boto3" = "*"
 
 [requires]
 python_version = "2.7"
