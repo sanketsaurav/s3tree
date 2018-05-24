@@ -67,6 +67,10 @@ class S3Tree(Sequence):
         # set the base path
         self.path = normalize_path(path)
 
+        # set counters
+        self.num_files = None
+        self.num_directories = None
+
         # get the base tree and prepare the iterable
         self.__tree = self.__fetch_tree()
 
@@ -76,7 +80,7 @@ class S3Tree(Sequence):
     def __len__(self):
         return len(self.__tree)
 
-    def __fetch_tree(self, path='/'):
+    def __fetch_tree(self):
         # retrieve the tree at the current path
         tree = self.client.list_objects_v2(
             Bucket=self.bucket_name, Delimiter=self.KEY_DELIMITER,
@@ -100,9 +104,11 @@ class S3Tree(Sequence):
         directories = data.get('CommonPrefixes', [])
         files = data.get('Contents', [])
 
+        self.num_directories = len(directories)
         for d in directories:
             container.append(Directory(d, self))
 
+        self.num_files = len(files)
         for f in files:
             container.append(File(f, self))
 
@@ -121,7 +127,7 @@ class S3Tree(Sequence):
             error_code = int(exc.response['Error']['Code'])
 
             if error_code == 404:
-                raise BucketNotFound
+                raise BucketNotFound(bucket_name)
 
             elif error_code == 403:
                 raise BucketAccessDenied(bucket_name)

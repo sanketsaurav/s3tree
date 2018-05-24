@@ -13,7 +13,11 @@ def test_normalize_path_not_a_string():
 
 
 def test_normalize_path_none():
-    assert normalize_path(None) == '/'
+    assert normalize_path(None) == ''
+
+
+def test_normalize_path_root():
+    assert normalize_path('/') == ''
 
 
 def test_normalize_path():

@@ -28,8 +28,8 @@ class Directory(object):
     def get_tree(self):
         return self.s3tree.__class__(
             bucket_name=self.s3tree.bucket_name, path=self.path,
-            aws_access_key_id=self._access_key,
-            aws_secret_access_key=self._secret_key
+            aws_access_key_id=self.s3tree._access_key,
+            aws_secret_access_key=self.s3tree._secret_key
         )
 
 

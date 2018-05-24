@@ -14,7 +14,7 @@ def normalize_path(path):
         - must not start with a '/'
         - must end with a '/'
 
-    Also, if there's no path, we should always default to `/`.
+    Also, if there's no path, we should always default to an empty string.
 
     Args:
         path (string)
@@ -26,8 +26,8 @@ def normalize_path(path):
     if not (path is None or isinstance(path, basestring)):
         raise InvalidPathError
 
-    if not path:
-        return "/"
+    if not path or path == '/':
+        return ""
 
     # make sure the path never starts with a '/'
     path = path.lstrip('/')
