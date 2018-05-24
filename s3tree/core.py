@@ -6,8 +6,7 @@ from boto3 import Session
 from botocore.exceptions import ClientError
 from collections import Sequence
 
-from s3tree import aws_access_key_id as global_aws_access_key_id
-from s3tree import aws_secret_access_key as global_aws_secret_access_key
+from . import config
 from .exceptions import (BucketAccessDenied, BucketNotFound, DirectoryNotFound,
                          ImproperlyConfiguredError)
 from .models import Directory, File
@@ -46,9 +45,9 @@ class S3Tree(Sequence):
                  aws_secret_access_key=None):
         # try to get the access key and secret key either from this object's
         # init, or from the global config.
-        self._access_key = aws_access_key_id or global_aws_access_key_id
+        self._access_key = aws_access_key_id or config.aws_access_key_id
         self._secret_key = (aws_secret_access_key or
-                            global_aws_secret_access_key)
+                            config.aws_secret_access_key)
 
         if not (self._access_key and self._secret_key):
             raise ImproperlyConfiguredError
@@ -62,7 +61,7 @@ class S3Tree(Sequence):
         self.client = self.s3.meta.client
 
         # ensure that the bucket exists, and then set the bucket name
-        self.__ensure_bucket_exists()
+        self.__ensure_bucket_exists(bucket_name)
         self.bucket_name = bucket_name
 
         # set the base path
@@ -125,7 +124,7 @@ class S3Tree(Sequence):
                 raise BucketNotFound
 
             elif error_code == 403:
-                raise BucketAccessDenied
+                raise BucketAccessDenied(bucket_name)
 
             else:
                 raise exc

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# global config
-aws_access_key_id = None
+__all__ = ['S3Tree', 'config']
 
-aws_secret_access_key = None
+from .types import S3TreeConfig
+
+config = S3TreeConfig()
+
+from .core import S3Tree  # noqa
