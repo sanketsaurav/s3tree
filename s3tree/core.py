@@ -2,40 +2,60 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
-import os
 from boto3 import Session
 from botocore.exceptions import ClientError
+from collections import Sequence
 
-from .exceptions import BucketAccessDenied, BucketNotFound, DirectoryNotFound
+from s3tree import aws_access_key_id as global_aws_access_key_id
+from s3tree import aws_secret_access_key as global_aws_secret_access_key
+from .exceptions import (BucketAccessDenied, BucketNotFound, DirectoryNotFound,
+                         ImproperlyConfiguredError)
+from .models import Directory, File
 from .utils import normalize_path
 
 
-class S3Tree(object):
+class S3Tree(Sequence):
     """
-    Primary entry-point to use S3Tree.
+    Create an S3Tree object to access the tree at the given path.
 
-    This creates an object with the provided base path as the directory root.
-    It exposes methods to traverse the tree beneath that path, and to
-    get individual files.
+    You can iterate upon this object to access directories and files in this
+    tree.
+
+    Usage:
+        >>> tree = S3Tree(bucket_name='demo', path='/css')
+        # Returns the tree inside `css` key from the base of the bucket
+        >>> tree = S3Tree(bucket_name='demo', path='/static/js/services')
+        # Returns the tree inside `static/js/services` path from the
+        # base of the bucket. The leading '/' is optional.
 
     Args:
         bucket_name (str): Name of the S3 bucket.
-        aws_access_key_id (str): The AWS access key ID.
-        aws_secret_access_key (str): The AWS secret access key.
-        base_path (:object: str, optional): The key of the path which should
-            be treated as the base of this tree. Defaults `None`, which
+        path (:object: str, optional): The key of the path which should
+            be treated as the base of this tree. Defaults `/`, which
             represents the root of this bucket.
+        aws_access_key_id (:object: str, optional): The AWS access key ID.
+        aws_secret_access_key (:object: str, optional): The AWS secret
+            access key.
     """
 
     BOTO3_S3_RESOURCE_ID = 's3'
 
     KEY_DELIMITER = '/'
 
-    def __init__(self, bucket_name, aws_access_key_id,
-                 aws_secret_access_key, base_path=None):
-        # create a session using the creds
-        session = Session(aws_access_key_id=aws_access_key_id,
-                          aws_secret_access_key=aws_secret_access_key)
+    def __init__(self, bucket_name, path=None, aws_access_key_id=None,
+                 aws_secret_access_key=None):
+        # try to get the access key and secret key either from this object's
+        # init, or from the global config.
+        self._access_key = aws_access_key_id or global_aws_access_key_id
+        self._secret_key = (aws_secret_access_key or
+                            global_aws_secret_access_key)
+
+        if not (self._access_key and self._secret_key):
+            raise ImproperlyConfiguredError
+
+        # create a session using the credentials
+        session = Session(aws_access_key_id=self._access_key,
+                          aws_secret_access_key=self._secret_key)
 
         # create an S3 resource
         self.s3 = session.resource(self.BOTO3_S3_RESOURCE_ID)
@@ -46,54 +66,48 @@ class S3Tree(object):
         self.bucket_name = bucket_name
 
         # set the base path
-        self.base_path = base_path
+        self.path = normalize_path(path)
 
-    def listdir(self, path='/'):
-        """
-        Returns a list of files and directories present under the given path.
+        # get the base tree and prepare the iterable
+        self.__tree = self.__fetch_tree()
 
-        The path specified could be a single directory, or multiple directory
-        traversal. If no path is passed, the base path is taken.
+    def __getitem__(self, index):
+        return self.__tree[index]
 
-        Usage:
-            >>> tree = S3Tree()
-            >>> tree.listdir('/css')
-            # Returns the tree inside `css` key from the base of the bucket
-            >>> tree.listdir('/static/js/services')
-            # Returns the tree inside `static/js/services` path from the
-            # base of the bucket
+    def __len__(self):
+        return len(self.__tree)
 
-        Args:
-            path (string): The path to list the files and directories of.
-                Defaults to '/'.
-        """
-
-        full_path = normalize_path(os.path.join(self.base_path, path))
-
-        # get tree
-        tree_data = self.client.list_objects_v2(
+    def __fetch_tree(self, path='/'):
+        # retrieve the tree at the current path
+        tree = self.client.list_objects_v2(
             Bucket=self.bucket_name, Delimiter=self.KEY_DELIMITER,
-            Prefix=full_path)
+            Prefix=self.path)
 
-        # if this directory is empty, raise an error
-        if not tree_data.get('KeyCount'):
-            raise DirectoryNotFound(full_path)
+        tree_size = tree.get('KeyCount')
 
-        # otherwise, return the tree
+        # if the current tree is empty and we are not accessing the bucket
+        # root, throw an error since this directory does not exist.
+        if not tree_size and self.path != self.KEY_DELIMITER:
+            raise DirectoryNotFound(self.path)
+
+        # otherwise, prepare the tree and return the list
         else:
-            pass
+            return self.__prepare_tree(tree)
 
-    def getfile(self, path):
-        """Returns the file at the given path.
-
-        Usage:
-            >>> tree = S3Tree()
-            >>> tree.getfile('/static/bumble.js')
-
-        Args:
-            path (string): The path of the file.
+    def __prepare_tree(self, data):
+        """Takes the tree data and returns a list representing the tree object.
         """
-        pass
+        container = []
+        directories = data.get('CommonPrefixes', [])
+        files = data.get('Contents', [])
+
+        for d in directories:
+            container.append(Directory(d, self))
+
+        for f in files:
+            container.append(File(f, self))
+
+        return container
 
     def __ensure_bucket_exists(self, bucket_name):
         """Check if the bucket exists and the credentials provided have

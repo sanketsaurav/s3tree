@@ -2,6 +2,15 @@
 # -*- coding: utf-8 -*-
 
 
+class ImproperlyConfiguredError(Exception):
+    def __init__(self):
+        message = """aws_access_key_id and aws_secret_access_key must be
+        provided, either while creating an S3Tree object, or setting globally
+        on s3tree module. Couldn't find either of them.
+        """
+        super(ImproperlyConfiguredError, self).__init__(message)
+
+
 class BucketNotFound(Exception):
     def __init__(self, bucket_name):
         message = "Could not find the bucket: {}".format(bucket_name)

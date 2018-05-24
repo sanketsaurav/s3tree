@@ -4,7 +4,6 @@
 trees and files in S3Tree."""
 import os
 from future.utils import python_2_unicode_compatible
-from botocore.errorfactory import NoSuchKey
 from .utils import humanize_file_size
 from .exceptions import FileNotFound
 
@@ -16,7 +15,22 @@ class Directory(object):
     """
 
     def __init__(self, data, s3tree):
-        pass
+        self.path = data.get('Prefix')
+        self.s3tree = s3tree
+
+    @property
+    def name(self):
+        return os.path.basename(self.path.rstrip('/'))
+
+    def __str__(self):
+        return self.name
+
+    def get_tree(self):
+        return self.s3tree.__class__(
+            bucket_name=self.s3tree.bucket_name, path=self.path,
+            aws_access_key_id=self._access_key,
+            aws_secret_access_key=self._secret_key
+        )
 
 
 @python_2_unicode_compatible
@@ -49,8 +63,8 @@ class File(object):
         try:
             return self.__s3tree.client.get_object(
                 Bucket=self.__s3tree.bucket_name,
-                Key=self.path)['Body'].read()
-        except NoSuchKey:
+                Key=self.path)['Body'].read().decode("utf-8")
+        except self.__s3tree.client.exceptions.NoSuchKey:
             raise FileNotFound(self.path)
 
     def __str__(self):
