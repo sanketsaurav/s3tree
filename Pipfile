@@ -16,4 +16,4 @@ twine = "*"
 future = "*"
 
 [requires]
-python_version = ">2.6"
+python_version = "2.7"

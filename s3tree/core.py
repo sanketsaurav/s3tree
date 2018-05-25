@@ -67,9 +67,9 @@ class S3Tree(Sequence):
         # set the base path
         self.path = normalize_path(path)
 
-        # set counters
-        self.num_files = None
-        self.num_directories = None
+        # set containers
+        self.directories = []
+        self.files = []
 
         # get the base tree and prepare the iterable
         self.__tree = self.__fetch_tree()
@@ -100,19 +100,16 @@ class S3Tree(Sequence):
     def __prepare_tree(self, data):
         """Takes the tree data and returns a list representing the tree object.
         """
-        container = []
         directories = data.get('CommonPrefixes', [])
         files = data.get('Contents', [])
 
-        self.num_directories = len(directories)
         for d in directories:
-            container.append(Directory(d, self))
+            self.directories.append(Directory(d, self))
 
-        self.num_files = len(files)
         for f in files:
-            container.append(File(f, self))
+            self.files.append(File(f, self))
 
-        return container
+        return self.directories + self.files
 
     def __ensure_bucket_exists(self, bucket_name):
         """Check if the bucket exists and the credentials provided have
@@ -134,3 +131,13 @@ class S3Tree(Sequence):
 
             else:
                 raise exc
+
+    @property
+    def num_files(self):
+        """Returns the number of files in this tree."""
+        return len(self.files)
+
+    @property
+    def num_directories(self):
+        """Returns the number of directories in this tree."""
+        return len(self.directories)

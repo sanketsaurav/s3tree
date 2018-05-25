@@ -37,7 +37,9 @@ def test_s3tree_tree_sanity():
     # refer to helpers.generate_dummy_bucket to see the origin of these values.
     assert len(tree) == 7
     assert tree.num_directories == 3
+    assert len(tree.directories) == 3
     assert tree.num_files == 4
+    assert len(tree.files) == 4
 
     # the first object in the tree should be a directory called `css`
     assert isinstance(tree[0], s3tree.models.Directory)
