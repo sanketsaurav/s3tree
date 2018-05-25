@@ -36,4 +36,4 @@ def generate_dummy_bucket():
     for file in files:
         content = string.ascii_letters * random.randint(1, 10)
         s3.meta.client.put_object(Bucket=DUMMY_BUCKET_NAME, Key=file,
-                                  Body=b'{}'.format(content))
+                                  Body=content)

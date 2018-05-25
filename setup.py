@@ -18,7 +18,7 @@ REQUIRES_PYTHON = '>=2.7.0'
 VERSION = None
 
 # What packages are required for this module to be executed?
-REQUIRED = ['boto3', 'future']
+REQUIRED = ['boto3', 'future', 'six']
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -89,15 +89,23 @@ setup(
     include_package_data=True,
     license='MIT',
     classifiers=[
-        # Trove classifiers
-        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    # $ setup.py publish support.
     cmdclass={
         'upload': UploadCommand,
     },
