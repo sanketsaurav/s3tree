@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Utility functions for S3Tree."""
 from math import log
+from six import string_types
 from .exceptions import InvalidPathError
 
 SUFFIXES = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
@@ -23,7 +24,7 @@ def normalize_path(path):
         string
     """
 
-    if not (path is None or isinstance(path, basestring)):
+    if not (path is None or isinstance(path, string_types)):
         raise InvalidPathError
 
     if not path or path == '/':

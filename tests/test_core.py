@@ -3,6 +3,7 @@
 """Tests for core module."""
 
 from pytest import raises, fail
+from six import string_types
 from moto import mock_s3
 import s3tree
 from .helpers import (DUMMY_BUCKET_NAME, DUMMY_ACCESS_KEY_ID,
@@ -91,5 +92,5 @@ def test_file_reads():
     # the first element in this tree is a file
     dummy_file = tree[0]
     assert isinstance(dummy_file, s3tree.models.File)
-    assert isinstance(dummy_file.read(), basestring)
+    assert isinstance(dummy_file.read(), string_types)
     assert dummy_file.read().startswith('abcd')
