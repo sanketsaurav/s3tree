@@ -12,10 +12,10 @@ python:
   - "pypy"
 
 install:
+  - pip install tox
   - pip install tox-travis
-  - make
 
 script:
-  - make test
+  - tox
 
 after_success: coveralls

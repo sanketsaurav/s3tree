@@ -1,8 +1,2 @@
-init:
-	pip install tox
-
 test:
-	tox
-
-test36:
-	tox -e py36
+	pipenv run py.test --cov-config .coveragerc --cov=s3tree

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """Tests for models."""
 import datetime
+import json
 from dateutil.tz import tzutc
 import mock
 import pytest
@@ -38,6 +39,12 @@ def test_directory_class(directory_data, s3tree):
     assert str(directory) == 'gis'
 
 
+def test_directory_as_json_property(directory_data, s3tree):
+    directory = Directory(directory_data, s3tree)
+    data = json.loads(directory.as_json)
+    assert data == dict(name='gis', path='admin/img/gis/')
+
+
 def test_file_class(file_data, s3tree):
     # create a new file from data
     file_obj = File(file_data, s3tree)
@@ -46,3 +53,14 @@ def test_file_class(file_data, s3tree):
     assert file_obj.name == 'tooltag-add.png'
     assert file_obj.path == 'admin/img/tooltag-add.png'
     assert file_obj.size_in_bytes == 2048
+
+
+def test_file_as_json_property(file_data, s3tree):
+    file_obj = File(file_data, s3tree)
+    data = json.loads(file_obj.as_json)
+    assert data == dict(name='tooltag-add.png',
+                        path='admin/img/tooltag-add.png',
+                        etag='"2152fd3b4a4dd92fef70a86e50e1453b"',
+                        size_in_bytes=2048,
+                        size='2 KB',
+                        last_modified='2018-03-16T13:25:59+00:00')

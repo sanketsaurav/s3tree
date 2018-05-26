@@ -4,6 +4,7 @@
 trees and files in S3Tree."""
 import os
 from future.utils import python_2_unicode_compatible
+from json import dumps
 from .utils import humanize_file_size
 from .exceptions import FileNotFound
 
@@ -31,6 +32,14 @@ class Directory(object):
             aws_access_key_id=self.s3tree._access_key,
             aws_secret_access_key=self.s3tree._secret_key
         )
+
+    @property
+    def as_json(self):
+        """JSON representation of this directory."""
+        return dumps({
+            'name': self.name,
+            'path': self.path
+        })
 
 
 @python_2_unicode_compatible
@@ -69,3 +78,12 @@ class File(object):
 
     def __str__(self):
         return self.name
+
+    @property
+    def as_json(self):
+        """JSON representation of this file."""
+        properties = ('name', 'path', 'etag', 'size',
+                      'size_in_bytes')
+        data = {p: getattr(self, p) for p in properties}
+        data['last_modified'] = self.last_modified.isoformat()
+        return dumps(data)
