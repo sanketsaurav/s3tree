@@ -5,12 +5,13 @@ from __future__ import absolute_import
 from boto3 import Session
 from botocore.exceptions import ClientError
 from collections import Sequence
+from json import dumps
 
 from . import config
 from .exceptions import (BucketAccessDenied, BucketNotFound, DirectoryNotFound,
                          ImproperlyConfiguredError)
 from .models import Directory, File
-from .utils import normalize_path
+from .utils import normalize_path, cached_property
 
 
 class S3Tree(Sequence):
@@ -141,3 +142,16 @@ class S3Tree(Sequence):
     def num_directories(self):
         """Returns the number of directories in this tree."""
         return len(self.directories)
+
+    @cached_property
+    def as_json(self):
+        """JSON representation of this tree."""
+        obj_list = []
+
+        for directory in self.directories:
+            obj_list.append(directory.as_dict)
+
+        for file_obj in self.files:
+            obj_list.append(file_obj.as_dict)
+
+        return dumps(obj_list)

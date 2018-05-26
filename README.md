@@ -67,6 +67,12 @@ If you want to access files and directories separately:
 >>> tree.files  # iterable for all the files in the tree
 ```
 
+The S3Tree object can be easily represented as JSON:
+
+```python
+>>> tree.as_json
+```
+
 ### The Directory object
 Each element in `tree.directories` is a `Directory` object. This has attributes that help you
 display the directory in a human-friendly manner, and methods to fetch the tree under itself.
@@ -78,6 +84,7 @@ css
 >>> mydir.path  # the full path of this directory
 /admin/css
 >>> child_tree = mydir.get_tree()  # retrieve and store the tree under `mydir` to `child_tree`
+>>> json_data = mydir.as_json  # JSON representation of this directory
 ```
 
 ### The File object
@@ -91,4 +98,5 @@ index.js
 >>> myfile.size  # human-readable size of this file
 4 KB
 >>> contents = myfile.read()  # reads the file and stores its contents in `contents`
+>>> json_data = myfile.as_json  # JSON representation of this file obj
 ```

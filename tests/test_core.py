@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 """Tests for core module."""
 
+import json
+from moto import mock_s3
 from pytest import raises, fail
 from six import string_types
-from moto import mock_s3
 import s3tree
 from .helpers import (DUMMY_BUCKET_NAME, DUMMY_ACCESS_KEY_ID,
                       DUMMY_SECRET_ACCESS_KEY, generate_dummy_bucket)
@@ -96,3 +97,16 @@ def test_file_reads():
     assert isinstance(dummy_file, s3tree.models.File)
     assert isinstance(dummy_file.read(), string_types)
     assert dummy_file.read().startswith('abcd')
+
+
+@mock_s3
+def test_tree_as_json_property():
+    generate_dummy_bucket()
+    tree = s3tree.S3Tree(bucket_name=DUMMY_BUCKET_NAME,
+                         aws_access_key_id=DUMMY_ACCESS_KEY_ID,
+                         aws_secret_access_key=DUMMY_SECRET_ACCESS_KEY)
+    json_data = tree.as_json
+    data = json.loads(json_data)
+    assert isinstance(json_data, string_types)
+    assert isinstance(data, list)
+    assert len(data) == 7

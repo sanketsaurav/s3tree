@@ -5,7 +5,7 @@ trees and files in S3Tree."""
 import os
 from future.utils import python_2_unicode_compatible
 from json import dumps
-from .utils import humanize_file_size
+from .utils import humanize_file_size, cached_property
 from .exceptions import FileNotFound
 
 
@@ -33,13 +33,18 @@ class Directory(object):
             aws_secret_access_key=self.s3tree._secret_key
         )
 
-    @property
-    def as_json(self):
-        """JSON representation of this directory."""
-        return dumps({
+    @cached_property
+    def as_dict(self):
+        """Dictionary representation of this directory."""
+        return {
             'name': self.name,
             'path': self.path
-        })
+        }
+
+    @cached_property
+    def as_json(self):
+        """JSON representation of this directory."""
+        return dumps(self.as_dict)
 
 
 @python_2_unicode_compatible
@@ -79,11 +84,16 @@ class File(object):
     def __str__(self):
         return self.name
 
-    @property
-    def as_json(self):
-        """JSON representation of this file."""
+    @cached_property
+    def as_dict(self):
+        """Dictionary representation of this file."""
         properties = ('name', 'path', 'etag', 'size',
                       'size_in_bytes')
         data = {p: getattr(self, p) for p in properties}
         data['last_modified'] = self.last_modified.isoformat()
-        return dumps(data)
+        return data
+
+    @cached_property
+    def as_json(self):
+        """JSON representation of this file."""
+        return dumps(self.as_dict)
