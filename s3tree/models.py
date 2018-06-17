@@ -3,6 +3,7 @@
 """This module contains the model objects that are used to represent
 trees and files in S3Tree."""
 import os
+import mimelib
 from future.utils import python_2_unicode_compatible
 from json import dumps
 from .utils import humanize_file_size, cached_property
@@ -59,6 +60,9 @@ class File(object):
         self.size_in_bytes = data.get('Size')
         self.storage_class = data.get('StorageClass')
 
+        # create a mime object for this file
+        self.mime = mimelib.url(self.path)
+
         # private attributes
         self.__s3tree = s3tree
 
@@ -71,6 +75,11 @@ class File(object):
     def name(self):
         """File name of this file."""
         return os.path.basename(self.path)
+
+    @property
+    def file_type(self):
+        """Returns this file's type."""
+        return self.mime.file_type
 
     def read(self):
         """Read the contents of this file. This method returns a string."""
@@ -87,7 +96,7 @@ class File(object):
     @cached_property
     def as_dict(self):
         """Dictionary representation of this file."""
-        properties = ('name', 'path', 'etag', 'size',
+        properties = ('name', 'path', 'etag', 'size', 'file_type',
                       'size_in_bytes')
         data = {p: getattr(self, p) for p in properties}
         data['last_modified'] = self.last_modified.isoformat()

@@ -61,6 +61,7 @@ def test_file_as_dict_property(file_data, s3tree):
     file_obj = File(file_data, s3tree)
     orig_data = dict(name='tooltag-add.png',
                      path='admin/img/tooltag-add.png',
+                     file_type='image',
                      etag='"2152fd3b4a4dd92fef70a86e50e1453b"',
                      size_in_bytes=2048,
                      size='2 KB',

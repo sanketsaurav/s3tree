@@ -18,7 +18,7 @@ REQUIRES_PYTHON = '>=2.7.0'
 VERSION = None
 
 # What packages are required for this module to be executed?
-REQUIRED = ['boto3', 'future', 'six']
+REQUIRED = ['boto3', 'future', 'mimelib', 'six']
 
 here = os.path.abspath(os.path.dirname(__file__))
 
