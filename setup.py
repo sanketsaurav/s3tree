@@ -7,6 +7,7 @@ import sys
 from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
+from setuptools.command.test import test as TestCommand
 
 # Package meta-data.
 NAME = 's3tree'
@@ -19,6 +20,9 @@ VERSION = None
 
 # What packages are required for this module to be executed?
 REQUIRED = ['boto3', 'future', 'mimelib', 'six']
+
+# packages required for tests to run
+TEST_REQUIRED = ['pytest', 'pytest-cov', 'moto', 'mock']
 
 here = os.path.abspath(os.path.dirname(__file__))
 
@@ -73,6 +77,23 @@ class UploadCommand(Command):
         sys.exit()
 
 
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass to pytest")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+
+        self.pytest_args = ""
+
+    def run_tests(self):
+        import shlex
+
+        import pytest
+
+        errno = pytest.main(shlex.split(self.pytest_args))
+        sys.exit(errno)
+
+
 # Where the magic happens:
 setup(
     name=NAME,
@@ -86,6 +107,7 @@ setup(
     url=URL,
     packages=find_packages(exclude=('tests',)),
     install_requires=REQUIRED,
+    tests_require=TEST_REQUIRED,
     include_package_data=True,
     license='MIT',
     classifiers=[
@@ -105,5 +127,6 @@ setup(
     ],
     cmdclass={
         'upload': UploadCommand,
+        'test': PyTest
     },
 )
