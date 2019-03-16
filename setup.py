@@ -51,6 +51,9 @@ class UploadCommand(Command):
 
     def initialize_options(self):
         pass
+    
+    def test_function(self):
+        raise NotImplemented
 
     def finalize_options(self):
         pass
