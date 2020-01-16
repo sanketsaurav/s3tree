@@ -1,8 +1,7 @@
 # S3Tree 🌲
 
+[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/sanketsaurav/s3tree/?ref=repository-badge)
 [![Build Status](https://travis-ci.org/sanketsaurav/s3tree.svg?branch=master)](https://travis-ci.org/sanketsaurav/s3tree) [![Coverage Status](https://coveralls.io/repos/github/sanketsaurav/s3tree/badge.svg?branch=master)](https://coveralls.io/github/sanketsaurav/s3tree?branch=master)
-
-[![DeepSource](https://static.deepsource.io/deepsource-badge-light.svg)](https://deepsource.io/gh/sanketsaurav/s3tree/?ref=repository-badge)
 
 S3Tree allows you to access files stored on Amazon AWS S3 as a simple directory tree. You can traverse the tree and read files as easily as
 you `os.walk`.
