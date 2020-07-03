@@ -8,8 +8,12 @@ from collections import Sequence
 from json import dumps
 
 from . import config
-from .exceptions import (BucketAccessDenied, BucketNotFound, DirectoryNotFound,
-                         ImproperlyConfiguredError)
+from .exceptions import (
+    BucketAccessDenied,
+    BucketNotFound,
+    DirectoryNotFound,
+    ImproperlyConfiguredError,
+)
 from .models import Directory, File
 from .utils import normalize_path, cached_property
 
@@ -38,24 +42,25 @@ class S3Tree(Sequence):
             access key.
     """
 
-    BOTO3_S3_RESOURCE_ID = 's3'
+    BOTO3_S3_RESOURCE_ID = "s3"
 
-    KEY_DELIMITER = '/'
+    KEY_DELIMITER = "/"
 
-    def __init__(self, bucket_name, path=None, aws_access_key_id=None,
-                 aws_secret_access_key=None):
+    def __init__(
+        self, bucket_name, path=None, aws_access_key_id=None, aws_secret_access_key=None
+    ):
         # try to get the access key and secret key either from this object's
         # init, or from the global config.
         self._access_key = aws_access_key_id or config.aws_access_key_id
-        self._secret_key = (aws_secret_access_key or
-                            config.aws_secret_access_key)
+        self._secret_key = aws_secret_access_key or config.aws_secret_access_key
 
         if not (self._access_key and self._secret_key):
             raise ImproperlyConfiguredError
 
         # create a session using the credentials
-        session = Session(aws_access_key_id=self._access_key,
-                          aws_secret_access_key=self._secret_key)
+        session = Session(
+            aws_access_key_id=self._access_key, aws_secret_access_key=self._secret_key
+        )
 
         # create an S3 resource
         self.s3 = session.resource(self.BOTO3_S3_RESOURCE_ID)
@@ -84,10 +89,10 @@ class S3Tree(Sequence):
     def __fetch_tree(self):
         # retrieve the tree at the current path
         tree = self.client.list_objects_v2(
-            Bucket=self.bucket_name, Delimiter=self.KEY_DELIMITER,
-            Prefix=self.path)
+            Bucket=self.bucket_name, Delimiter=self.KEY_DELIMITER, Prefix=self.path
+        )
 
-        tree_size = tree.get('KeyCount')
+        tree_size = tree.get("KeyCount")
 
         # if the current tree is empty and we are not accessing the bucket
         # root, throw an error since this directory does not exist.
@@ -101,8 +106,8 @@ class S3Tree(Sequence):
     def __prepare_tree(self, data):
         """Takes the tree data and returns a list representing the tree object.
         """
-        directories = data.get('CommonPrefixes', [])
-        files = data.get('Contents', [])
+        directories = data.get("CommonPrefixes", [])
+        files = data.get("Contents", [])
 
         for d in directories:
             self.directories.append(Directory(d, self))
@@ -122,7 +127,7 @@ class S3Tree(Sequence):
         except ClientError as exc:
             # check the error code in the exception and raise a proper
             # exception
-            error_code = int(exc.response['Error']['Code'])
+            error_code = int(exc.response["Error"]["Code"])
 
             if error_code == 404:
                 raise BucketNotFound(bucket_name)

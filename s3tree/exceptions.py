@@ -19,9 +19,7 @@ class BucketNotFound(Exception):
 
 class BucketAccessDenied(Exception):
     def __init__(self, bucket_name):
-        message = "Permission to access denied for the bucket: {}".format(
-            bucket_name
-        )
+        message = "Permission to access denied for the bucket: {}".format(bucket_name)
         super(BucketAccessDenied, self).__init__(message)
 
 
