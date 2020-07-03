@@ -5,7 +5,7 @@ from math import log
 from six import string_types
 from .exceptions import InvalidPathError
 
-SUFFIXES = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+SUFFIXES = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
 
 
 def normalize_path(path):
@@ -27,15 +27,15 @@ def normalize_path(path):
     if not (path is None or isinstance(path, string_types)):
         raise InvalidPathError
 
-    if not path or path == '/':
+    if not path or path == "/":
         return ""
 
     # make sure the path never starts with a '/'
-    path = path.lstrip('/')
+    path = path.lstrip("/")
 
     # make sure the path always ends with a '/'
-    if not path.endswith('/'):
-        path += '/'
+    if not path.endswith("/"):
+        path += "/"
 
     return path
 
@@ -57,15 +57,14 @@ def humanize_file_size(size):
     # format file size
     # (.4g results in rounded numbers for exact matches and max 3 decimals,
     # should never resort to exponent values)
-    return '{:.4g} {}'.format(
-        float(size) / (1 << (order * 10)), SUFFIXES[order]
-    )
+    return "{:.4g} {}".format(float(size) / (1 << (order * 10)), SUFFIXES[order])
 
 
 class cached_property(object):
     """
     Descriptor (non-data) for building an attribute on-demand on first use.
     """
+
     def __init__(self, factory):
         """
         <factory> is called such: factory(instance) to build the attribute.
