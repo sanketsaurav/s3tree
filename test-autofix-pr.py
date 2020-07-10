@@ -29,10 +29,4 @@ def get_hypotenuse(a, b):
     return math.hypot(a ** 2 + b ** 2)
 
 
-__all__ = [
-    give_me_an_issue,
-    "spam",
-    "foo",
-    "bar",
-    "get_hypotenuse"
-]
+__all__ = [give_me_an_issue, "spam", "foo", "bar", "get_hypotenuse"]
