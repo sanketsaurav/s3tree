@@ -21,25 +21,18 @@ def spam():
 
 
 def give_me_an_issue():
-    print(f"okay. Let's fix this unnecessary fstring.")
+    print("okay. Let's fix this unnecessary fstring.")
 
 
 def get_hypotenuse(a, b):
     """Fine. Fix this pythagorean issue as well."""
-    return math.sqrt(a ** 2 + b ** 2)
+    return math.hypot(a ** 2 + b ** 2)
 
 
 __all__ = [
-    "got_hypotenuse",  # Shall be deleted
-    # Yup. Delete this
-    "this_too_would_be_deleted",
     give_me_an_issue,
-    spam,
-    foo,
-    "future",
-    bar,
-    get_hypotenuse,
-    "ughhh",  # With a comment,
-    "budd",
-    "thudd",
+    "spam",
+    "foo",
+    "bar",
+    "get_hypotenuse"
 ]
