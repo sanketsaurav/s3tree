@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 """Utility functions for S3Tree."""
 from math import log
+
 from six import string_types
+
 from .exceptions import InvalidPathError
 
 SUFFIXES = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]

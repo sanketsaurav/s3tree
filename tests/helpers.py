@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """Fixtures to be used in tests."""
-from boto3 import Session
 import random
 import string
+
+from boto3 import Session
 
 DUMMY_BUCKET_NAME = "dummy-bucket"
 DUMMY_ACCESS_KEY_ID = "dummy-key"

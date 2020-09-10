@@ -1,12 +1,8 @@
 from pytest import raises
-from s3tree.exceptions import (
-    ImproperlyConfiguredError,
-    BucketNotFound,
-    BucketAccessDenied,
-    InvalidPathError,
-    FileNotFound,
-    DirectoryNotFound,
-)
+
+from s3tree.exceptions import (BucketAccessDenied, BucketNotFound,
+                               DirectoryNotFound, FileNotFound,
+                               ImproperlyConfiguredError, InvalidPathError)
 
 
 def test_improperly_configured_error_exc():

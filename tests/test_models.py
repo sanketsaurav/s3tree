@@ -3,11 +3,13 @@
 """Tests for models."""
 import datetime
 import json
-from dateutil.tz import tzutc
+
 import mock
 import pytest
-from s3tree.models import Directory, File
+from dateutil.tz import tzutc
+
 from s3tree.core import S3Tree
+from s3tree.models import Directory, File
 
 
 @pytest.fixture
