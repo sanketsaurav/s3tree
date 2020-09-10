@@ -3,8 +3,9 @@
 """Tests for utils."""
 
 import pytest
+
 from s3tree.exceptions import InvalidPathError
-from s3tree.utils import normalize_path, humanize_file_size
+from s3tree.utils import humanize_file_size, normalize_path
 
 
 def test_normalize_path_not_a_string():

@@ -2,20 +2,18 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
-from boto3 import Session
-from botocore.exceptions import ClientError
+
 from collections import Sequence
 from json import dumps
 
+from boto3 import Session
+from botocore.exceptions import ClientError
+
 from . import config
-from .exceptions import (
-    BucketAccessDenied,
-    BucketNotFound,
-    DirectoryNotFound,
-    ImproperlyConfiguredError,
-)
+from .exceptions import (BucketAccessDenied, BucketNotFound, DirectoryNotFound,
+                         ImproperlyConfiguredError)
 from .models import Directory, File
-from .utils import normalize_path, cached_property
+from .utils import cached_property, normalize_path
 
 
 class S3Tree(Sequence):
@@ -104,8 +102,7 @@ class S3Tree(Sequence):
             return self.__prepare_tree(tree)
 
     def __prepare_tree(self, data):
-        """Takes the tree data and returns a list representing the tree object.
-        """
+        """Takes the tree data and returns a list representing the tree object."""
         directories = data.get("CommonPrefixes", [])
         files = data.get("Contents", [])
 

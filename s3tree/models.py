@@ -3,11 +3,13 @@
 """This module contains the model objects that are used to represent
 trees and files in S3Tree."""
 import os
+from json import dumps
+
 import mimelib
 from future.utils import python_2_unicode_compatible
-from json import dumps
-from .utils import humanize_file_size, cached_property
+
 from .exceptions import FileNotFound
+from .utils import cached_property, humanize_file_size
 
 
 @python_2_unicode_compatible

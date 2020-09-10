@@ -3,16 +3,15 @@
 """Tests for core module."""
 
 import json
+
 from moto import mock_s3
-from pytest import raises, fail
+from pytest import fail, raises
 from six import string_types
+
 import s3tree
-from .helpers import (
-    DUMMY_BUCKET_NAME,
-    DUMMY_ACCESS_KEY_ID,
-    DUMMY_SECRET_ACCESS_KEY,
-    generate_dummy_bucket,
-)
+
+from .helpers import (DUMMY_ACCESS_KEY_ID, DUMMY_BUCKET_NAME,
+                      DUMMY_SECRET_ACCESS_KEY, generate_dummy_bucket)
 
 
 def test_s3tree_improperly_configured():
