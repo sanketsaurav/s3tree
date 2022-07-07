@@ -10,8 +10,12 @@ from boto3 import Session
 from botocore.exceptions import ClientError
 
 from . import config
-from .exceptions import (BucketAccessDenied, BucketNotFound, DirectoryNotFound,
-                         ImproperlyConfiguredError)
+from .exceptions import (
+    BucketAccessDenied,
+    BucketNotFound,
+    DirectoryNotFound,
+    ImproperlyConfiguredError,
+)
 from .models import Directory, File
 from .utils import cached_property, normalize_path
 

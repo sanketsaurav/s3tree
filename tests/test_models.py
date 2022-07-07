@@ -14,17 +14,17 @@ from s3tree.models import Directory, File
 
 @pytest.fixture
 def directory_data():
-    return {u"Prefix": "admin/img/gis/"}
+    return {"Prefix": "admin/img/gis/"}
 
 
 @pytest.fixture
 def file_data():
     return {
-        u"ETag": '"2152fd3b4a4dd92fef70a86e50e1453b"',
-        u"Key": "admin/img/tooltag-add.png",
-        u"LastModified": datetime.datetime(2018, 3, 16, 13, 25, 59, tzinfo=tzutc()),
-        u"Size": 2048,
-        u"StorageClass": "STANDARD",
+        "ETag": '"2152fd3b4a4dd92fef70a86e50e1453b"',
+        "Key": "admin/img/tooltag-add.png",
+        "LastModified": datetime.datetime(2018, 3, 16, 13, 25, 59, tzinfo=tzutc()),
+        "Size": 2048,
+        "StorageClass": "STANDARD",
     }
 
 

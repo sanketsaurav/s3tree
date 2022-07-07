@@ -10,8 +10,12 @@ from six import string_types
 
 import s3tree
 
-from .helpers import (DUMMY_ACCESS_KEY_ID, DUMMY_BUCKET_NAME,
-                      DUMMY_SECRET_ACCESS_KEY, generate_dummy_bucket)
+from .helpers import (
+    DUMMY_ACCESS_KEY_ID,
+    DUMMY_BUCKET_NAME,
+    DUMMY_SECRET_ACCESS_KEY,
+    generate_dummy_bucket,
+)
 
 
 def test_s3tree_improperly_configured():
