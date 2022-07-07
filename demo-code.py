@@ -7,6 +7,7 @@ import sys as sys
 
 # from django.db.models.expressions import RawSQL
 
+
 class BaseNumberGenerator:
     """Declare a method -- `get_number`."""
 
