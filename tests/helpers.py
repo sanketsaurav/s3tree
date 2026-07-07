@@ -1,8 +1,6 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Fixtures to be used in tests."""
-import random
-import string
+
+from __future__ import annotations
 
 from boto3 import Session
 
@@ -11,8 +9,7 @@ DUMMY_ACCESS_KEY_ID = "dummy-key"
 DUMMY_SECRET_ACCESS_KEY = "dummy-secret"
 
 
-def generate_dummy_bucket():
-
+def generate_dummy_bucket() -> None:
     session = Session(
         aws_access_key_id=DUMMY_ACCESS_KEY_ID,
         aws_secret_access_key=DUMMY_SECRET_ACCESS_KEY,
@@ -28,21 +25,22 @@ def generate_dummy_bucket():
     # the first entry in the tree should be the directory `cache`, since boto3
     # returns the values sorted alphabetically. The last object should be the
     # file called `index.js`.
-    files = (
-        "index.js",
-        "avatar.jpg",
-        "__init__.py",
-        "Makefile",
-        "css/app.less",
-        "css/base.css",
-        "js/vendor/angular.js",
-        "js/vendor/angular.min.js",
-        "js/vendor/latest/react.js",
-        "cache/foo.rb",
-        "cache/staticfiles/latest/index.js" "cache/staticfiles/dummy.txt",
-        "cache/staticfiles/logs.txt",
-    )
+    objects = {
+        "index.js": b"console.log('hello')",
+        "avatar.jpg": b"\xff\xd8\xff",
+        "__init__.py": b"",
+        "Makefile": b"test:\n\tpytest\n",
+        "css/app.less": b"abcd { color: #111; }\n",
+        "css/base.css": b"body { margin: 0; }\n",
+        "js/vendor/angular.js": b"angular.module('demo', [])",
+        "js/vendor/angular.min.js": b"angular.module('demo',[])",
+        "js/vendor/latest/react.js": b"window.React = {}",
+        "cache/foo.rb": b"puts 'hello'",
+        "cache/staticfiles/latest/index.js": b"console.log('latest')",
+        "cache/staticfiles/dummy.txt": b"dummy",
+        "cache/staticfiles/logs.txt": b"logs",
+        "empty/": b"",
+    }
 
-    for file in files:
-        content = string.ascii_letters * random.randint(1, 10)
-        s3.meta.client.put_object(Bucket=DUMMY_BUCKET_NAME, Key=file, Body=content)
+    for key, content in objects.items():
+        s3.meta.client.put_object(Bucket=DUMMY_BUCKET_NAME, Key=key, Body=content)

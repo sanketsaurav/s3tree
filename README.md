@@ -1,103 +1,249 @@
-# S3Tree 🌲
+# S3Tree
 
-[![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/sanketsaurav/s3tree/?ref=repository-badge)
-[![Build Status](https://travis-ci.org/sanketsaurav/s3tree.svg?branch=master)](https://travis-ci.org/sanketsaurav/s3tree) [![Coverage Status](https://coveralls.io/repos/github/sanketsaurav/s3tree/badge.svg?branch=master)](https://coveralls.io/github/sanketsaurav/s3tree?branch=master)
+Typed tree navigation for S3 and S3-compatible object storage.
 
-S3Tree allows you to access files stored on Amazon AWS S3 as a simple directory tree. You can traverse the tree and read files as easily as
-you `os.walk`.
+S3Tree gives Python applications a small, predictable object model for browsing
+S3 prefixes as directories and files. It is designed for admin dashboards, data
+explorers, asset browsers, migration tooling, and APIs that need clean JSON
+without adopting a full filesystem abstraction.
 
-```python
->>> import s3tree
->>> s3tree.config.aws_access_key_id = '<AWS-ACCESS-KEY>'
->>> s3tree.config.aws_secret_access_key = '<AWS-SECRET-KEY>'
->>> tree = s3tree.S3Tree(bucket_name='my-awesome-bucket')
->>> len(tree)
-77
->>> for obj in tree: print(obj.name)
-...
-admin
-assets
-...
-index.js
-```
+S3 is still object storage, not a real filesystem. S3Tree focuses on the common
+application-level need: "show me the immediate children under this prefix, let
+me traverse deeper, and give me typed metadata I can serialize."
 
 ## Installation
 
-To install S3Tree, use pipenv (or pip):
-
-```
-$ pipenv install s3tree
+```bash
+pip install s3tree
 ```
 
-
-## Documentation
-
-### Using AWS credentials
-
-The `s3tree` module exposes a `config` object that can be used to set the AWS credentials you want to use
-globally. You should ideally do this before you make any instances of `S3Tree`.
+## Basic Usage
 
 ```python
->>> import s3tree
->>> s3tree.config.aws_access_key_id = '<AWS-ACCESS-KEY>'
->>> s3tree.config.aws_secret_access_key = '<AWS-SECRET-KEY>'
+import s3tree
+
+tree = s3tree.S3Tree(bucket_name="my-bucket", prefix="datasets/2026")
+
+for entry in tree:
+    print(entry.kind, entry.name, entry.path)
+
+print(tree.num_directories)
+print(tree.num_files)
 ```
 
-Credentials can also be passed while creating an `S3Tree` instance:
+S3Tree uses Boto3's standard credential chain by default, including environment
+variables, profiles, IAM roles, web identity credentials, IAM Identity Center,
+container credentials, and EC2 instance metadata.
+
+## Traverse Directories
 
 ```python
->>> tree = s3tree.S3Tree('dummy-bucket', aws_access_key_id='<AWS-ACCESS-KEY>', aws_secret_access_key='<AWS-SECRET-KEY>')
-```
-Passing the credentials during instance creation overrides the global config.
+tree = s3tree.S3Tree("my-bucket", prefix="assets")
 
-### Fetching a tree
-
-The `S3Tree` object represents a tree at any given path. The path can be specified while creating a new tree.
-If no path, or `/` is passed, the root if the bucket is fetched.
-
-```python
->>> tree = s3tree.S3Tree(bucket_name='dummy')  # tree at the root of the bucket `dummy`
->>> tree = s3tree.S3Tree(bucket_name='dummy', path='/admin/css')  # tree under the path `/admin/css`
->>> tree = s3tree.S3Tree(bucket_name='dummy', path='admin/css')  # this works too.
-```
-The `tree` object above is an iterable that contains all files and directories in this tree. `len(tree)` gives you the total size of this tree.
-If you want to access files and directories separately:
-
-```python
->>> tree.directories  # iterable for all the directories in the tree
->>> tree.files  # iterable for all the files in the tree
+for directory in tree.directories:
+    child_tree = directory.get_tree()
+    print(directory.name, len(child_tree))
 ```
 
-The S3Tree object can be easily represented as JSON:
+Recursive traversal is available when you ask for it:
 
 ```python
->>> tree.as_json
+for entry in tree.walk(max_depth=2):
+    print(entry.kind, entry.path)
 ```
 
-### The Directory object
-Each element in `tree.directories` is a `Directory` object. This has attributes that help you
-display the directory in a human-friendly manner, and methods to fetch the tree under itself.
+## Read Files
 
 ```python
->>> mydir = tree.directories[0]
->>> mydir.name  # the name of this directory
-css
->>> mydir.path  # the full path of this directory
-/admin/css
->>> child_tree = mydir.get_tree()  # retrieve and store the tree under `mydir` to `child_tree`
->>> json_data = mydir.as_json  # JSON representation of this directory
+file = tree.files[0]
+
+data = file.read_bytes()
+text = file.read_text()
 ```
 
-### The File object
-Each element in `tree.files` is a `File` object, which has attributes and methods to display properties
-and read the file.
+The old `file.read()` method is still available as a UTF-8 text alias, but new
+code should prefer `read_bytes()` or `read_text()`.
+
+For large objects, stream bytes instead of loading the full object into memory:
 
 ```python
->>> myfile = tree.files[0]
->>> myfile.name  # name of this file
-index.js
->>> myfile.size  # human-readable size of this file
-4 KB
->>> contents = myfile.read()  # reads the file and stores its contents in `contents`
->>> json_data = myfile.as_json  # JSON representation of this file obj
+for chunk in file.iter_chunks(chunk_size=8 * 1024 * 1024):
+    process(chunk)
+```
+
+Use `open()` when you need direct access to Boto3's streaming body:
+
+```python
+body = file.open()
+try:
+    first_kb = body.read(1024)
+finally:
+    body.close()
+```
+
+## Cursor-Based Pages
+
+Use `fetch_page()` when you are building a UI, API, or background worker that
+should not materialize a whole prefix at once.
+
+```python
+page = s3tree.S3Tree.fetch_page(
+    "my-bucket",
+    prefix="datasets",
+    page_size=100,
+)
+
+for entry in page:
+    print(entry.kind, entry.path)
+
+next_token = page.next_token
+```
+
+Pass `starting_token=next_token` to fetch the next page. Tokens are Boto3
+paginator tokens and should be treated as opaque strings.
+
+## URI Helpers
+
+```python
+tree = s3tree.S3Tree.from_uri("s3://my-bucket/datasets/2026")
+page = s3tree.S3Tree.fetch_page_from_uri("s3://my-bucket/datasets/2026")
+```
+
+The URI target is interpreted as a tree prefix. Query strings, fragments, and
+raw path params are rejected so user-facing `s3://` input cannot silently change
+the listing request.
+
+## Metadata Enrichment
+
+`ListObjectsV2` returns enough data for browsing, but not all object metadata.
+Call `load_metadata()` for one file, or pass `enrich_metadata=True` to load
+metadata for every file in the listed tree/page.
+
+```python
+file = tree.files[0].load_metadata()
+print(file.content_type)
+print(file.metadata)
+print(file.version_id)
+```
+
+`enrich_metadata=True` issues one `HeadObject` request per file, so keep it off
+for large directory listings unless your UI needs that data immediately.
+
+## JSON for Applications
+
+```python
+payload = tree.to_dict()
+json_payload = tree.to_json()
+```
+
+The tree payload includes the bucket, prefix, delimiter, counts, and serialized
+children. Each child has a `kind` field:
+
+```json
+{
+  "bucket": "my-bucket",
+  "prefix": "datasets/2026/",
+  "delimiter": "/",
+  "num_directories": 1,
+  "num_files": 2,
+  "children": [
+    {
+      "kind": "directory",
+      "name": "images",
+      "path": "datasets/2026/images/",
+      "prefix": "datasets/2026/images/"
+    }
+  ]
+}
+```
+
+## S3-Compatible Providers
+
+Pass `endpoint_url` and any provider-specific region value to use object storage
+services that implement the S3 API. S3Tree only depends on the standard
+`HeadBucket`, `ListObjectsV2`, `HeadObject`, and `GetObject` calls.
+
+Cloudflare R2:
+
+```python
+tree = s3tree.S3Tree(
+    "my-bucket",
+    prefix="datasets",
+    endpoint_url="https://<ACCOUNT_ID>.r2.cloudflarestorage.com",
+    region_name="auto",
+    aws_access_key_id="<ACCESS_KEY_ID>",
+    aws_secret_access_key="<SECRET_ACCESS_KEY>",
+)
+```
+
+MinIO or another custom endpoint:
+
+```python
+tree = s3tree.S3Tree(
+    "my-bucket",
+    endpoint_url="http://localhost:9000",
+    region_name="us-east-1",
+    aws_access_key_id="minioadmin",
+    aws_secret_access_key="minioadmin",
+)
+```
+
+Providers such as Wasabi, DigitalOcean Spaces, and Backblaze B2 work the same
+way: configure the provider endpoint and credentials, then use the normal tree
+API.
+
+If your application already owns a configured client, inject it directly:
+
+```python
+import boto3
+
+client = boto3.client(
+    "s3",
+    endpoint_url="https://<ACCOUNT_ID>.r2.cloudflarestorage.com",
+    region_name="auto",
+)
+
+tree = s3tree.S3Tree.from_client("my-bucket", client, prefix="datasets")
+```
+
+For path-style endpoints, pass a Botocore config:
+
+```python
+from botocore.config import Config
+
+tree = s3tree.S3Tree(
+    "my-bucket",
+    endpoint_url="http://localhost:9000",
+    region_name="us-east-1",
+    botocore_config=Config(s3={"addressing_style": "path"}),
+)
+```
+
+For S3 Express directory buckets, access points, Outposts, custom signers, or
+provider-specific endpoint rules, create the exact Boto3 client required by that
+provider and pass it with `S3Tree.from_client()` or `S3Tree.fetch_page(...,
+client=client)`. S3Tree deliberately does not rewrite advanced bucket names,
+ARNs, or zonal endpoints itself.
+
+## API Notes
+
+- Listings use Boto3's `list_objects_v2` paginator.
+- `prefix` and the legacy `path` argument both refer to the tree root prefix.
+- Prefixes are normalized so `assets`, `/assets`, and `assets/` all target
+  `assets/`.
+- `from_uri()` accepts `s3://bucket/prefix` and decodes URL-escaped path
+  segments before prefix normalization.
+- Construction validates the bucket with `head_bucket` by default. Pass
+  `validate_bucket=False` to skip that extra request.
+- For requester-pays buckets, pass `request_payer="requester"`.
+- To enforce an expected AWS account owner, pass `expected_bucket_owner`.
+
+## Development
+
+```bash
+python -m pip install -e ".[dev]"
+ruff check .
+ty check --python "$(python -c 'import sys; print(sys.executable)')"
+pytest
+python -m build
 ```

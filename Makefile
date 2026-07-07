@@ -1,2 +1,14 @@
+PYTHON ?= python3
+TYPECHECK_PYTHON := $(shell $(PYTHON) -c 'import sys; print(sys.executable)')
+
 test:
-	python setup.py test -a "--cov-config .coveragerc --cov=s3tree"
+	$(PYTHON) -m pytest
+
+lint:
+	ruff check .
+
+typecheck:
+	ty check --python "$(TYPECHECK_PYTHON)"
+
+build:
+	$(PYTHON) -m build
