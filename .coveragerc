@@ -4,5 +4,6 @@ source =
         s3tree
 
 [report]
+fail_under = 100
 skip_covered = True
 show_missing = True

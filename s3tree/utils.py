@@ -1,16 +1,15 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """Utility functions for S3Tree."""
-from math import log
 
-from six import string_types
+from __future__ import annotations
+
+from math import log
 
 from .exceptions import InvalidPathError
 
 SUFFIXES = ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
 
 
-def normalize_path(path):
+def normalize_path(path: str | None) -> str:
     """Take a path and return the normalized path which is usable in boto3.
 
     We need to make sure that any path that has to be used internally:
@@ -26,7 +25,7 @@ def normalize_path(path):
         string
     """
 
-    if not (path is None or isinstance(path, string_types)):
+    if not (path is None or isinstance(path, str)):
         raise InvalidPathError
 
     if not path or path == "/":
@@ -42,7 +41,7 @@ def normalize_path(path):
     return path
 
 
-def humanize_file_size(size):
+def humanize_file_size(size: int) -> str:
     """Convert the size of a file given in bytes to a human friendly
     display value.
 
@@ -59,26 +58,4 @@ def humanize_file_size(size):
     # format file size
     # (.4g results in rounded numbers for exact matches and max 3 decimals,
     # should never resort to exponent values)
-    return "{:.4g} {}".format(float(size) / (1 << (order * 10)), SUFFIXES[order])
-
-
-class cached_property(object):
-    """
-    Descriptor (non-data) for building an attribute on-demand on first use.
-    """
-
-    def __init__(self, factory):
-        """
-        <factory> is called such: factory(instance) to build the attribute.
-        """
-        self._attr_name = factory.__name__
-        self._factory = factory
-
-    def __get__(self, instance, owner):
-        # Build the attribute.
-        attr = self._factory(instance)
-
-        # Cache the value; hide ourselves.
-        setattr(instance, self._attr_name, attr)
-
-        return attr
+    return f"{float(size) / (1 << (order * 10)):.4g} {SUFFIXES[order]}"
