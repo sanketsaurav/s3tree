@@ -61,11 +61,9 @@ class TreePageDict(TypedDict):
 
 
 class BodyStream(Protocol):
-    def read(self, amt: int | None = None) -> bytes:
-        ...
+    def read(self, amt: int | None = None) -> bytes: ...
 
-    def close(self) -> None:
-        ...
+    def close(self) -> None: ...
 
 
 class S3Client(Protocol):

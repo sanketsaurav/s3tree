@@ -183,10 +183,13 @@ def test_listing_uses_paginator_across_more_than_one_page() -> None:
 
 def _client_error(code: str, status: int) -> ClientError:
     return ClientError(
-        cast(Any, {
-            "Error": {"Code": code, "Message": code},
-            "ResponseMetadata": {"HTTPStatusCode": status},
-        }),
+        cast(
+            Any,
+            {
+                "Error": {"Code": code, "Message": code},
+                "ResponseMetadata": {"HTTPStatusCode": status},
+            },
+        ),
         "ListObjectsV2",
     )
 
