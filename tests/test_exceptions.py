@@ -14,13 +14,10 @@ def test_improperly_configured_error_exc() -> None:
     with raises(ImproperlyConfiguredError) as exc:
         raise ImproperlyConfiguredError
 
-    assert (
-        str(exc.value)
-        == """aws_access_key_id and aws_secret_access_key must be
+    assert str(exc.value) == """aws_access_key_id and aws_secret_access_key must be
         provided, either while creating an S3Tree object, or setting globally
         on s3tree module. Couldn't find either of them.
         """
-    )
 
 
 def test_bucket_not_found_exc() -> None:

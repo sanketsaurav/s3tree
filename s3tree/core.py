@@ -302,9 +302,9 @@ class S3Tree(Sequence[TreeEntry]):
             starting_token=starting_token,
             page_size=effective_page_size,
             max_items=effective_max_items,
-            enrich_metadata=self.enrich_metadata
-            if enrich_metadata is None
-            else enrich_metadata,
+            enrich_metadata=(
+                self.enrich_metadata if enrich_metadata is None else enrich_metadata
+            ),
         )
         self._raise_if_missing_directory(page, saw_directory_marker)
         return page
